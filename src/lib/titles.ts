@@ -1,4 +1,7 @@
-export function shortenTitle(title: string, max = 60): { display: string; extra: string[] } {
+export function shortenTitle(
+  title: string,
+  max = 60,
+): { display: string; extra: string[] } {
   if (title.length <= max) {
     return { display: title, extra: [] };
   }
@@ -13,7 +16,9 @@ export function shortenTitle(title: string, max = 60): { display: string; extra:
   if (parenIdx >= 0) {
     const head = title.slice(0, parenIdx);
     const closeIdx = title.lastIndexOf(")");
-    const hasParams = closeIdx > parenIdx + 1 && title.slice(parenIdx + 1, closeIdx).trim().length > 0;
+    const hasParams =
+      closeIdx > parenIdx + 1 &&
+      title.slice(parenIdx + 1, closeIdx).trim().length > 0;
     display = head + (hasParams ? "(...)" : "()");
   } else if (title.includes(".")) {
     const last = title.split(".").pop() ?? title;

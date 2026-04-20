@@ -14,7 +14,14 @@
       "title": "Search Java Docs",
       "description": "Search classes, methods, and packages in Java SE documentation",
       "mode": "view",
-      "keywords": ["java", "javadoc", "jdk", "api", "documentation", "oracle", "class", "method", "package", "se", "lang", "util", "stream", "collection"]
+      "keywords": ["java", "javadoc", "jdk", "api", "documentation", "oracle", "class", "method", "package", "se", "stream", "collection"]
+    },
+    {
+      "name": "search-mdn-js",
+      "title": "Search MDN JS Docs",
+      "description": "Search JavaScript reference on MDN Web Docs",
+      "mode": "view",
+      "keywords": ["javascript", "js", "mdn", "mozilla", "web", "ecmascript", "dom", "api", "reference"]
     }
   ],
   "preferences": [

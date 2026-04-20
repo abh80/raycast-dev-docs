@@ -1,4 +1,15 @@
-export type ItemKind = "class" | "interface" | "enum" | "annotation" | "record" | "method" | "field" | "constructor" | "package" | "module" | "other";
+export type ItemKind =
+  | "class"
+  | "interface"
+  | "enum"
+  | "annotation"
+  | "record"
+  | "method"
+  | "field"
+  | "constructor"
+  | "package"
+  | "module"
+  | "other";
 
 export interface SearchItem {
   providerId: string;
@@ -38,5 +49,9 @@ export interface DocProvider {
   loadPage(item: SearchItem): Promise<DocPage>;
   externalUrl(item: SearchItem): string;
   /** Return children (members) of a container item (class/interface). Optional. */
-  childrenOf?(parent: SearchItem, query: string, limit: number): Promise<SearchItem[]>;
+  childrenOf?(
+    parent: SearchItem,
+    query: string,
+    limit: number,
+  ): Promise<SearchItem[]>;
 }

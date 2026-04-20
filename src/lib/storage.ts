@@ -9,11 +9,19 @@ export function providerDir(providerId: string): string {
   return join(ROOT, providerId);
 }
 
-export function indexPath(providerId: string, version: string, kind: string): string {
+export function indexPath(
+  providerId: string,
+  version: string,
+  kind: string,
+): string {
   return join(providerDir(providerId), "indexes", version, `${kind}.json`);
 }
 
-export function pagePath(providerId: string, version: string, url: string): string {
+export function pagePath(
+  providerId: string,
+  version: string,
+  url: string,
+): string {
   const hash = createHash("sha1").update(url).digest("hex");
   return join(providerDir(providerId), "pages", version, `${hash}.json`);
 }
@@ -66,7 +74,10 @@ async function walkFiles(dir: string): Promise<CacheEntry[]> {
   return out;
 }
 
-export async function pruneCache(providerId: string, limitBytes: number): Promise<void> {
+export async function pruneCache(
+  providerId: string,
+  limitBytes: number,
+): Promise<void> {
   const dir = join(providerDir(providerId), "pages");
   const files = await walkFiles(dir);
   let total = files.reduce((n, f) => n + f.size, 0);

@@ -20,10 +20,14 @@ declare type Preferences = ExtensionPreferences
 declare namespace Preferences {
   /** Preferences accessible in the `search-java` command */
   export type SearchJava = ExtensionPreferences & {}
+  /** Preferences accessible in the `search-mdn-js` command */
+  export type SearchMdnJs = ExtensionPreferences & {}
 }
 
 declare namespace Arguments {
   /** Arguments passed to the `search-java` command */
   export type SearchJava = {}
+  /** Arguments passed to the `search-mdn-js` command */
+  export type SearchMdnJs = {}
 }
 

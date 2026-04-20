@@ -66,7 +66,7 @@ function expand(item: CompactItem, version: string): SearchItem {
     version,
     kind,
     title,
-    subtitle: item.k === "p" ? item.m ?? "" : item.p ?? "",
+    subtitle: item.k === "p" ? (item.m ?? "") : (item.p ?? ""),
     fqn,
     url,
     anchor,
@@ -82,9 +82,14 @@ export function searchChildren(
   limit: number,
 ): SearchItem[] {
   const q = query.trim().toLowerCase();
-  const candidates = index.filter((it) => it.k === "m" && it.p === pkg && it.c === className);
+  const candidates = index.filter(
+    (it) => it.k === "m" && it.p === pkg && it.c === className,
+  );
   if (!q) return candidates.slice(0, limit).map((it) => expand(it, version));
-  interface Hit { item: CompactItem; score: number }
+  interface Hit {
+    item: CompactItem;
+    score: number;
+  }
   const hits: Hit[] = [];
   for (const it of candidates) {
     const s = scoreLabel(it.l, q);
@@ -111,14 +116,22 @@ export function searchCompact(
     return out;
   }
 
-  interface Hit { item: CompactItem; score: number }
+  interface Hit {
+    item: CompactItem;
+    score: number;
+  }
   const hits: Hit[] = [];
   const cap = limit * 10;
   for (const it of index) {
     const title = it.k === "m" && it.c ? `${it.c}.${it.l}` : it.l;
     let s = scoreLabel(title, q);
     if (s === 0) {
-      const fqn = it.k === "p" ? it.l : it.k === "t" ? `${it.p}.${it.l}` : `${it.p}.${it.c}.${it.l}`;
+      const fqn =
+        it.k === "p"
+          ? it.l
+          : it.k === "t"
+            ? `${it.p}.${it.l}`
+            : `${it.p}.${it.c}.${it.l}`;
       s = scoreFqn(fqn, q);
     }
     if (s > 0) {

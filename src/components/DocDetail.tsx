@@ -16,7 +16,7 @@ export function DocDetail({ provider, item }: Props) {
 
   const markdown = error
     ? `# Error\n\n${String(error.message ?? error)}\n\n[Open in browser](${item.url})`
-    : data?.markdown ?? `# ${item.title}\n\nLoading…`;
+    : (data?.markdown ?? `# ${item.title}\n\nLoading…`);
 
   return (
     <Detail
@@ -27,10 +27,18 @@ export function DocDetail({ provider, item }: Props) {
         data?.meta && data.meta.length > 0 ? (
           <Detail.Metadata>
             {data.meta.map((m, i) => (
-              <Detail.Metadata.Label key={`${m.label}-${i}`} title={m.label} text={m.value} />
+              <Detail.Metadata.Label
+                key={`${m.label}-${i}`}
+                title={m.label}
+                text={m.value}
+              />
             ))}
             <Detail.Metadata.Separator />
-            <Detail.Metadata.Link title="Source" target={item.url} text="Oracle" />
+            <Detail.Metadata.Link
+              title="Source"
+              target={item.url}
+              text="Oracle"
+            />
           </Detail.Metadata>
         ) : undefined
       }
@@ -41,8 +49,16 @@ export function DocDetail({ provider, item }: Props) {
             title="Open in Browser"
             shortcut={{ modifiers: ["ctrl"], key: "return" }}
           />
-          <Action.CopyToClipboard title="Copy URL" content={item.url} icon={Icon.Link} />
-          <Action.CopyToClipboard title="Copy Fully Qualified Name" content={item.fqn} icon={Icon.Text} />
+          <Action.CopyToClipboard
+            title="Copy URL"
+            content={item.url}
+            icon={Icon.Link}
+          />
+          <Action.CopyToClipboard
+            title="Copy Fully Qualified Name"
+            content={item.fqn}
+            icon={Icon.Text}
+          />
         </ActionPanel>
       }
     />

@@ -1,4 +1,12 @@
-import { Action, ActionPanel, Color, Icon, List, showToast, Toast } from "@raycast/api";
+import {
+  Action,
+  ActionPanel,
+  Color,
+  Icon,
+  List,
+  showToast,
+  Toast,
+} from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
 import { useState } from "react";
 import type { DocProvider, SearchItem } from "../providers/types";
@@ -33,7 +41,9 @@ export function MembersList({ provider, parent }: Props) {
     { keepPreviousData: true },
   );
 
-  const methods = results.filter((r) => r.kind === "method" || r.kind === "constructor");
+  const methods = results.filter(
+    (r) => r.kind === "method" || r.kind === "constructor",
+  );
   const fields = results.filter((r) => r.kind === "field");
 
   return (
@@ -46,12 +56,24 @@ export function MembersList({ provider, parent }: Props) {
     >
       <List.Section title="Methods" subtitle={String(methods.length)}>
         {methods.map((it) => (
-          <MemberItem key={it.url} provider={provider} item={it} icon={Icon.Bolt} query={query} />
+          <MemberItem
+            key={it.url}
+            provider={provider}
+            item={it}
+            icon={Icon.Bolt}
+            query={query}
+          />
         ))}
       </List.Section>
       <List.Section title="Fields" subtitle={String(fields.length)}>
         {fields.map((it) => (
-          <MemberItem key={it.url} provider={provider} item={it} icon={Icon.Circle} query={query} />
+          <MemberItem
+            key={it.url}
+            provider={provider}
+            item={it}
+            icon={Icon.Circle}
+            query={query}
+          />
         ))}
       </List.Section>
     </List>
@@ -69,7 +91,9 @@ function MemberItem({
   icon: Icon;
   query: string;
 }) {
-  const baseTitle = item.title.includes(".") ? item.title.split(".").slice(1).join(".") : item.title;
+  const baseTitle = item.title.includes(".")
+    ? item.title.split(".").slice(1).join(".")
+    : item.title;
   const { display, extra } = shortenTitle(baseTitle);
   const keywords = extra.includes(item.title) ? extra : [item.title, ...extra];
   const match = matchedSubstring(baseTitle, query);
@@ -88,14 +112,26 @@ function MemberItem({
       accessories={accessories}
       actions={
         <ActionPanel>
-          <Action.Push title="Show Docs" icon={Icon.Document} target={<DocDetail provider={provider} item={item} />} />
+          <Action.Push
+            title="Show Docs"
+            icon={Icon.Document}
+            target={<DocDetail provider={provider} item={item} />}
+          />
           <Action.OpenInBrowser
             url={provider.externalUrl(item)}
             title="Open in Browser"
             shortcut={{ modifiers: ["ctrl"], key: "return" }}
           />
-          <Action.CopyToClipboard title="Copy URL" content={item.url} icon={Icon.Link} />
-          <Action.CopyToClipboard title="Copy Fully Qualified Name" content={item.fqn} icon={Icon.Text} />
+          <Action.CopyToClipboard
+            title="Copy URL"
+            content={item.url}
+            icon={Icon.Link}
+          />
+          <Action.CopyToClipboard
+            title="Copy Fully Qualified Name"
+            content={item.fqn}
+            icon={Icon.Text}
+          />
         </ActionPanel>
       }
     />

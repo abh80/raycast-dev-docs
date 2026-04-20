@@ -31,7 +31,10 @@ function textOf(el: HTMLElement | null | undefined): string {
   return (el?.text ?? "").replace(/\s+/g, " ").trim();
 }
 
-function firstMatch(root: HTMLElement, selectors: string[]): HTMLElement | null {
+function firstMatch(
+  root: HTMLElement,
+  selectors: string[],
+): HTMLElement | null {
   for (const s of selectors) {
     const el = root.querySelector(s);
     if (el) return el;
@@ -42,7 +45,9 @@ function firstMatch(root: HTMLElement, selectors: string[]): HTMLElement | null 
 function collectNotes(dl: HTMLElement | null): DocMetaEntry[] {
   if (!dl) return [];
   const out: DocMetaEntry[] = [];
-  const kids = dl.childNodes.filter((n) => n instanceof HTMLElement) as HTMLElement[];
+  const kids = dl.childNodes.filter(
+    (n) => n instanceof HTMLElement,
+  ) as HTMLElement[];
   let label = "";
   for (const k of kids) {
     if (k.tagName === "DT") label = textOf(k).replace(/:$/, "");
@@ -61,13 +66,17 @@ function collectAllNotes(root: HTMLElement): DocMetaEntry[] {
 
 function summarize(main: HTMLElement): string {
   let md = "";
-  const summaries = main.querySelectorAll("section.summary > section, section.summary-list > section");
+  const summaries = main.querySelectorAll(
+    "section.summary > section, section.summary-list > section",
+  );
   for (const s of summaries) {
     const h = textOf(firstMatch(s, ["h2", "h3"]));
     if (!h) continue;
     const entries: string[] = [];
     const seen = new Set<string>();
-    for (const cell of s.querySelectorAll(".col-first a, .col-second a, .col-summary-item-name a")) {
+    for (const cell of s.querySelectorAll(
+      ".col-first a, .col-second a, .col-summary-item-name a",
+    )) {
       const t = textOf(cell);
       if (t && !seen.has(t)) {
         seen.add(t);
@@ -85,7 +94,8 @@ function summarize(main: HTMLElement): string {
 export function parseTypePage(html: string, item: SearchItem): DocPage {
   const root = parse(html);
   const main = root.querySelector("main") ?? root.querySelector("body") ?? root;
-  const title = textOf(firstMatch(main, [".header .title", "h1.title", "h1"])) || item.fqn;
+  const title =
+    textOf(firstMatch(main, [".header .title", "h1.title", "h1"])) || item.fqn;
 
   const headerText = textOf(main.querySelector(".header"));
   const moduleMatch = headerText.match(/Module\s+([\w.]+)/);
@@ -116,7 +126,12 @@ export function parseTypePage(html: string, item: SearchItem): DocPage {
   ]);
 
   const notes = collectAllNotes(
-    firstMatch(main, [".class-description", "section.class-description", ".description", "section.description"]) ?? main,
+    firstMatch(main, [
+      ".class-description",
+      "section.class-description",
+      ".description",
+      "section.description",
+    ]) ?? main,
   );
 
   const sig = textOf(signatureEl);
@@ -124,7 +139,9 @@ export function parseTypePage(html: string, item: SearchItem): DocPage {
   let desc = htmlToMd(descEl);
 
   if (!desc) {
-    desc = htmlToMd(firstMatch(main, ["section.description", ".description", ".block"]));
+    desc = htmlToMd(
+      firstMatch(main, ["section.description", ".description", ".block"]),
+    );
   }
 
   let md = `# ${title}\n\n`;
@@ -133,7 +150,9 @@ export function parseTypePage(html: string, item: SearchItem): DocPage {
   if (inheritance) md += `**Inheritance:** ${inheritance}\n\n`;
   if (desc) md += desc + "\n\n";
 
-  for (const n of notes.filter((n) => n.label !== "Since" && n.label !== "Deprecated")) {
+  for (const n of notes.filter(
+    (n) => n.label !== "Since" && n.label !== "Deprecated",
+  )) {
     md += `**${n.label}:** ${n.value}\n\n`;
   }
 
@@ -160,8 +179,20 @@ export function parseMemberPage(html: string, item: SearchItem): DocPage {
   if (!section) return parseTypePage(html, item);
 
   const name = textOf(firstMatch(section, ["h3", "h4", "h2"])) || item.title;
-  const sig = textOf(firstMatch(section, [".member-signature", "pre.member-signature", ".signature"]));
-  let desc = htmlToMd(firstMatch(section, [".block", ".description .block", "section.description"]));
+  const sig = textOf(
+    firstMatch(section, [
+      ".member-signature",
+      "pre.member-signature",
+      ".signature",
+    ]),
+  );
+  let desc = htmlToMd(
+    firstMatch(section, [
+      ".block",
+      ".description .block",
+      "section.description",
+    ]),
+  );
   const notes = collectAllNotes(section);
 
   if (!desc) desc = htmlToMd(section);
@@ -180,7 +211,10 @@ export function parseMemberPage(html: string, item: SearchItem): DocPage {
   return { title: name, markdown: md, meta, externalUrl: item.url };
 }
 
-function findMemberSection(root: HTMLElement, anchor: string): HTMLElement | null {
+function findMemberSection(
+  root: HTMLElement,
+  anchor: string,
+): HTMLElement | null {
   if (!anchor) return null;
   const candidates = [
     `section.detail[id="${anchor}"]`,
@@ -205,20 +239,39 @@ function findMemberSection(root: HTMLElement, anchor: string): HTMLElement | nul
 export function parsePackagePage(html: string, item: SearchItem): DocPage {
   const root = parse(html);
   const main = root.querySelector("main") ?? root;
-  const title = textOf(firstMatch(main, [".header .title", "h1.title", "h1"])) || `Package ${item.fqn}`;
-  let desc = htmlToMd(firstMatch(main, [".package-description", "section.package-description", ".description", "section.description"]));
+  const title =
+    textOf(firstMatch(main, [".header .title", "h1.title", "h1"])) ||
+    `Package ${item.fqn}`;
+  let desc = htmlToMd(
+    firstMatch(main, [
+      ".package-description",
+      "section.package-description",
+      ".description",
+      "section.description",
+    ]),
+  );
   if (!desc) desc = "";
 
   let md = `# ${title}\n\n`;
   if (desc) md += desc + "\n\n";
   md += summarize(main);
 
-  return { title, markdown: md, meta: [{ label: "Package", value: item.fqn }], externalUrl: item.url };
+  return {
+    title,
+    markdown: md,
+    meta: [{ label: "Package", value: item.fqn }],
+    externalUrl: item.url,
+  };
 }
 
 export function parseFallback(html: string, item: SearchItem): DocPage {
   const root = parse(html);
   const main = root.querySelector("main") ?? root.querySelector("body") ?? root;
   const md = htmlToMd(main);
-  return { title: item.title, markdown: `# ${item.title}\n\n${md}`, meta: [], externalUrl: item.url };
+  return {
+    title: item.title,
+    markdown: `# ${item.title}\n\n${md}`,
+    meta: [],
+    externalUrl: item.url,
+  };
 }

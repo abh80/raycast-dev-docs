@@ -5,7 +5,12 @@ import { getCompactIndex } from "./index-loader";
 import { searchChildren, searchCompact } from "./search";
 import { fetchText } from "../../lib/http";
 import { getCachedPage, setCachedPage } from "../../lib/page-cache";
-import { parseTypePage, parseMemberPage, parsePackagePage, parseFallback } from "./parser";
+import {
+  parseTypePage,
+  parseMemberPage,
+  parsePackagePage,
+  parseFallback,
+} from "./parser";
 
 interface Prefs {
   javaDefaultVersion?: string;
@@ -40,17 +45,27 @@ export const javaProvider: DocProvider = {
   externalUrl: (item) => item.url,
   loadPage: async (item: SearchItem): Promise<DocPage> => {
     const pageUrl = stripAnchor(item.url);
-    const isMember = item.kind === "method" || item.kind === "field" || item.kind === "constructor";
+    const isMember =
+      item.kind === "method" ||
+      item.kind === "field" ||
+      item.kind === "constructor";
     const cacheKey = isMember ? item.url : pageUrl;
     const cached = await getCachedPage(PROVIDER_ID, item.version, cacheKey);
-    if (cached && cached.markdown && cached.markdown.trim().length > 50) return cached;
+    if (cached && cached.markdown && cached.markdown.trim().length > 50)
+      return cached;
 
     const html = await fetchText(pageUrl);
     let page: DocPage;
     try {
       if (item.kind === "package") page = parsePackagePage(html, item);
       else if (isMember) page = parseMemberPage(html, item);
-      else if (item.kind === "class" || item.kind === "interface" || item.kind === "enum" || item.kind === "annotation" || item.kind === "record")
+      else if (
+        item.kind === "class" ||
+        item.kind === "interface" ||
+        item.kind === "enum" ||
+        item.kind === "annotation" ||
+        item.kind === "record"
+      )
         page = parseTypePage(html, item);
       else page = parseFallback(html, item);
     } catch {

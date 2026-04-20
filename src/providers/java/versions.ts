@@ -11,14 +11,23 @@ export function apiBase(version: string): string {
   return `https://docs.oracle.com/en/java/javase/${version}/docs/api/`;
 }
 
-export function buildTypeUrl(version: string, pkg: string, name: string, module?: string): string {
+export function buildTypeUrl(
+  version: string,
+  pkg: string,
+  name: string,
+  module?: string,
+): string {
   const base = apiBase(version);
   const pkgPath = pkg.replace(/\./g, "/");
   if (module) return `${base}${module}/${pkgPath}/${name}.html`;
   return `${base}${pkgPath}/${name}.html`;
 }
 
-export function buildPackageUrl(version: string, pkg: string, module?: string): string {
+export function buildPackageUrl(
+  version: string,
+  pkg: string,
+  module?: string,
+): string {
   const base = apiBase(version);
   const pkgPath = pkg.replace(/\./g, "/");
   if (module) return `${base}${module}/${pkgPath}/package-summary.html`;

@@ -26,14 +26,30 @@ function extractJsonArray(source: string): unknown[] {
   }
 }
 
-async function fetchIndexFile(version: string, file: string): Promise<unknown[]> {
+async function fetchIndexFile(
+  version: string,
+  file: string,
+): Promise<unknown[]> {
   const src = await fetchText(`${apiBase(version)}${file}`);
   return extractJsonArray(src);
 }
 
-interface RawType { p?: string; l?: string; m?: string }
-interface RawMember { p?: string; c?: string; l?: string; u?: string; m?: string }
-interface RawPackage { l?: string; m?: string }
+interface RawType {
+  p?: string;
+  l?: string;
+  m?: string;
+}
+interface RawMember {
+  p?: string;
+  c?: string;
+  l?: string;
+  u?: string;
+  m?: string;
+}
+interface RawPackage {
+  l?: string;
+  m?: string;
+}
 
 function buildCompact(
   types: RawType[],
@@ -98,7 +114,11 @@ export async function getCompactIndex(version: string): Promise<CompactItem[]> {
     fetchIndexFile(version, "package-search-index.js"),
   ]);
 
-  const items = buildCompact(types as RawType[], members as RawMember[], packages as RawPackage[]);
+  const items = buildCompact(
+    types as RawType[],
+    members as RawMember[],
+    packages as RawPackage[],
+  );
   await writeJson(cachePath, items);
   memoryCache.set(memKey, items);
   return items;
