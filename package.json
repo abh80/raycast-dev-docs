@@ -4,16 +4,17 @@
   "title": "Dev Docs",
   "description": "Search language and framework documentation locally. Fast fuzzy search, inline rendered pages, open in browser with Ctrl+Enter.",
   "icon": "extension-icon.png",
-  "author": "udayan",
+  "author": "abh80",
   "categories": ["Documentation", "Developer Tools"],
   "license": "MIT",
+  "version": "1.0.0",
   "commands": [
     {
       "name": "search-java",
       "title": "Search Java Docs",
       "description": "Search classes, methods, and packages in Java SE documentation",
       "mode": "view",
-      "keywords": ["java", "javadoc", "jdk", "api"]
+      "keywords": ["java", "javadoc", "jdk", "api", "documentation", "oracle", "class", "method", "package", "se", "lang", "util", "stream", "collection"]
     }
   ],
   "preferences": [

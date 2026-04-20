@@ -1,9 +1,10 @@
-import { Action, ActionPanel, Icon, List, LocalStorage, showToast, Toast } from "@raycast/api";
+import { Action, ActionPanel, Color, Icon, List, LocalStorage, showToast, Toast } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
 import { useEffect, useMemo, useState } from "react";
 import type { DocProvider, ItemKind, SearchItem } from "../providers/types";
 import { DocDetail } from "./DocDetail";
 import { MembersList } from "./MembersList";
+import { isPrefixMatch, matchedSubstring, shortenTitle } from "../lib/titles";
 
 const TYPE_KINDS: ReadonlySet<ItemKind> = new Set(["class", "interface", "enum", "annotation", "record"]);
 
@@ -109,13 +110,24 @@ export function DocSearchList({ provider }: Props) {
     >
       {sections.map(([section, entries]) => (
         <List.Section key={section} title={section} subtitle={String(entries.length)}>
-          {entries.map((it) => (
+          {entries.map((it) => {
+            const { display, extra } = shortenTitle(it.title);
+            const match = matchedSubstring(it.title, query);
+            const prefix = isPrefixMatch(it.title, query);
+            const accessories: List.Item.Accessory[] = [];
+            if (match) accessories.push({ tag: { value: match, color: Color.Green } });
+            accessories.push({ text: it.kind });
+            const iconValue = prefix
+              ? { source: KIND_ICON[it.kind], tintColor: Color.Green }
+              : KIND_ICON[it.kind];
+            return (
             <List.Item
               key={`${it.kind}:${it.url}`}
-              icon={KIND_ICON[it.kind]}
-              title={it.title}
+              icon={iconValue}
+              title={display}
               subtitle={it.subtitle}
-              accessories={[{ text: it.kind }]}
+              keywords={extra}
+              accessories={accessories}
               actions={
                 <ActionPanel>
                   <Action.Push title="Show Docs" icon={Icon.Document} target={<DocDetail provider={provider} item={it} />} />
@@ -137,7 +149,8 @@ export function DocSearchList({ provider }: Props) {
                 </ActionPanel>
               }
             />
-          ))}
+            );
+          })}
         </List.Section>
       ))}
     </List>

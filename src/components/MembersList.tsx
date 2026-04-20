@@ -1,8 +1,9 @@
-import { Action, ActionPanel, Icon, List, showToast, Toast } from "@raycast/api";
+import { Action, ActionPanel, Color, Icon, List, showToast, Toast } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
 import { useState } from "react";
 import type { DocProvider, SearchItem } from "../providers/types";
 import { DocDetail } from "./DocDetail";
+import { isPrefixMatch, matchedSubstring, shortenTitle } from "../lib/titles";
 
 interface Props {
   provider: DocProvider;
@@ -45,25 +46,46 @@ export function MembersList({ provider, parent }: Props) {
     >
       <List.Section title="Methods" subtitle={String(methods.length)}>
         {methods.map((it) => (
-          <MemberItem key={it.url} provider={provider} item={it} icon={Icon.Bolt} />
+          <MemberItem key={it.url} provider={provider} item={it} icon={Icon.Bolt} query={query} />
         ))}
       </List.Section>
       <List.Section title="Fields" subtitle={String(fields.length)}>
         {fields.map((it) => (
-          <MemberItem key={it.url} provider={provider} item={it} icon={Icon.Circle} />
+          <MemberItem key={it.url} provider={provider} item={it} icon={Icon.Circle} query={query} />
         ))}
       </List.Section>
     </List>
   );
 }
 
-function MemberItem({ provider, item, icon }: { provider: DocProvider; item: SearchItem; icon: Icon }) {
+function MemberItem({
+  provider,
+  item,
+  icon,
+  query,
+}: {
+  provider: DocProvider;
+  item: SearchItem;
+  icon: Icon;
+  query: string;
+}) {
+  const baseTitle = item.title.includes(".") ? item.title.split(".").slice(1).join(".") : item.title;
+  const { display, extra } = shortenTitle(baseTitle);
+  const keywords = extra.includes(item.title) ? extra : [item.title, ...extra];
+  const match = matchedSubstring(baseTitle, query);
+  const prefix = isPrefixMatch(baseTitle, query);
+  const accessories: List.Item.Accessory[] = [];
+  if (match) accessories.push({ tag: { value: match, color: Color.Green } });
+  accessories.push({ text: item.kind });
+  const iconValue = prefix ? { source: icon, tintColor: Color.Green } : icon;
+
   return (
     <List.Item
-      icon={icon}
-      title={item.title.includes(".") ? item.title.split(".").slice(1).join(".") : item.title}
+      icon={iconValue}
+      title={display}
       subtitle={item.subtitle}
-      accessories={[{ text: item.kind }]}
+      keywords={keywords}
+      accessories={accessories}
       actions={
         <ActionPanel>
           <Action.Push title="Show Docs" icon={Icon.Document} target={<DocDetail provider={provider} item={item} />} />
