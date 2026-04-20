@@ -13,6 +13,7 @@
       "name": "search-java",
       "title": "Search Java Docs",
       "description": "Search classes, methods, and packages in Java SE documentation",
+      "icon": "java.png",
       "mode": "view",
       "keywords": ["java", "javadoc", "jdk", "api", "documentation", "oracle", "class", "method", "package", "se", "stream", "collection"]
     },
@@ -20,8 +21,17 @@
       "name": "search-mdn-js",
       "title": "Search MDN JS Docs",
       "description": "Search JavaScript reference on MDN Web Docs",
+      "icon": "javascript.png",
       "mode": "view",
       "keywords": ["javascript", "js", "mdn", "mozilla", "web", "ecmascript", "dom", "api", "reference"]
+    },
+    {
+      "name": "search-scala",
+      "title": "Search Scala Docs",
+      "description": "Search Scala 3 standard library API",
+      "icon": "scala.png",
+      "mode": "view",
+      "keywords": ["scala", "scaladoc", "scala3", "dotty", "stdlib", "api", "reference"]
     }
   ],
   "preferences": [

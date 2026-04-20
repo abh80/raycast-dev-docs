@@ -22,6 +22,8 @@ declare namespace Preferences {
   export type SearchJava = ExtensionPreferences & {}
   /** Preferences accessible in the `search-mdn-js` command */
   export type SearchMdnJs = ExtensionPreferences & {}
+  /** Preferences accessible in the `search-scala` command */
+  export type SearchScala = ExtensionPreferences & {}
 }
 
 declare namespace Arguments {
@@ -29,5 +31,7 @@ declare namespace Arguments {
   export type SearchJava = {}
   /** Arguments passed to the `search-mdn-js` command */
   export type SearchMdnJs = {}
+  /** Arguments passed to the `search-scala` command */
+  export type SearchScala = {}
 }
 
