@@ -23,13 +23,14 @@ turndown.addRule("signatureBlock", {
       nodeName?: string;
       getAttribute?: (n: string) => string | null;
     };
-    if (el.nodeName !== "DIV") return false;
+    if (el.nodeName !== "DIV" && el.nodeName !== "SPAN") return false;
     const cls = el.getAttribute ? (el.getAttribute("class") ?? "") : "";
-    return /\bsignature\b/.test(cls);
+    return /\b(signature|documentableSignature|memberSignature)\b/.test(cls);
   },
   replacement: (_content, node) => {
     const el = node as unknown as { textContent?: string };
-    const txt = (el.textContent ?? "").trim().replace(/\s+/g, " ");
+    const raw = el.textContent ?? "";
+    const txt = raw.replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim();
     return "\n```scala\n" + txt + "\n```\n";
   },
 });
@@ -67,15 +68,54 @@ function stripNoise(root: HTMLElement): void {
   }
 }
 
+function findById(root: HTMLElement, id: string): HTMLElement | null {
+  if (!id) return null;
+  const escaped = id.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  try {
+    const hit = root.querySelector(`[id="${escaped}"]`);
+    if (hit) return hit;
+  } catch {
+    // selector parse failure — fall through to manual scan
+  }
+  const stack: HTMLElement[] = [root];
+  while (stack.length) {
+    const cur = stack.pop()!;
+    if (cur.getAttribute && cur.getAttribute("id") === id) return cur;
+    for (const child of cur.childNodes) {
+      if (child instanceof HTMLElement) stack.push(child);
+    }
+  }
+  return null;
+}
+
+const CONTAINER_CLASS_RE =
+  /\b(documentableElement|documentableItem|memberSection|member-detail|detail|expand|doc-content)\b/;
+
 function findAnchored(root: HTMLElement, anchor: string): HTMLElement | null {
   if (!anchor) return null;
-  const escaped = anchor.replace(/"/g, '\\"');
-  const el = root.querySelector(`[id="${escaped}"]`);
+  const decoded = (() => {
+    try {
+      return decodeURIComponent(anchor);
+    } catch {
+      return anchor;
+    }
+  })();
+  const candidates = new Set<string>([
+    anchor,
+    decoded,
+    anchor.replace(/^#/, ""),
+    decoded.replace(/^#/, ""),
+  ]);
+  let el: HTMLElement | null = null;
+  for (const id of candidates) {
+    el = findById(root, id);
+    if (el) break;
+  }
   if (!el) return null;
   let cur: HTMLElement | null = el;
-  for (let i = 0; i < 5 && cur; i++) {
+  for (let i = 0; i < 12 && cur; i++) {
     const cls = cur.getAttribute("class") ?? "";
-    if (/\bdocumentableElement\b/.test(cls)) return cur;
+    if (CONTAINER_CLASS_RE.test(cls)) return cur;
     cur = cur.parentNode as HTMLElement | null;
   }
   return el;
@@ -99,7 +139,14 @@ export function parseScalaPage(html: string, item: SearchItem): DocPage {
       const title =
         textOf(section.querySelector("h1, h2, h3, .documentableName")) ||
         item.title;
-      const md = `# ${title}\n\n*${item.fqn}*\n\n` + htmlToMd(section);
+      const sigEl = section.querySelector(
+        ".signature, .documentableSignature, .memberSignature",
+      );
+      const sig = textOf(sigEl);
+      sigEl?.remove();
+      let md = `# ${title}\n\n*${item.fqn}*\n\n`;
+      if (sig) md += "```scala\n" + sig + "\n```\n\n";
+      md += htmlToMd(section);
       return { title, markdown: md, meta, externalUrl: item.url };
     }
   }

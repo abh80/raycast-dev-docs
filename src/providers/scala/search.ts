@@ -7,20 +7,25 @@ const PROVIDER = "scala";
 function kindOf(k: string): ItemKind {
   switch (k) {
     case "class":
-    case "object":
-    case "enum":
       return "class";
+    case "object":
+    case "package object":
+      return "object";
     case "trait":
-      return "interface";
+      return "trait";
+    case "enum":
+      return "enum";
     case "def":
       return "method";
     case "val":
     case "var":
-    case "given":
       return "field";
+    case "given":
+      return "given";
+    case "extension":
+      return "extension";
     case "type":
-    case "static":
-      return "other";
+      return "type";
     case "package":
       return "package";
     default:
@@ -38,7 +43,8 @@ function isContainer(k: string): boolean {
     k === "trait" ||
     k === "object" ||
     k === "enum" ||
-    k === "package"
+    k === "package" ||
+    k === "package object"
   );
 }
 
@@ -84,6 +90,36 @@ function expand(item: CompactScala, version: string): SearchItem {
   };
 }
 
+function ownerBoost(d: string, owner: string): number {
+  if (!owner) return 0;
+  if (!d) return 0;
+  const dl = d.toLowerCase();
+  if (dl === owner) return 400;
+  if (dl.endsWith("." + owner)) return 350;
+  if (dl.includes("." + owner + ".")) return 200;
+  if (dl.includes(owner)) return 100;
+  return 0;
+}
+
+function scoreDotted(
+  it: CompactScala,
+  owner: string,
+  name: string,
+  full: string,
+): number {
+  const memberRaw = scoreLabel(it.n, name);
+  const memberScore =
+    memberRaw > 0 ? memberRaw + ownerBoost(it.d, owner) : 0;
+  const ownerRaw = scoreLabel(it.n, owner);
+  let ownerScore = 0;
+  if (ownerRaw > 0 && isContainer(it.k)) {
+    ownerScore = ownerRaw + 50;
+    if (it.n.toLowerCase() === owner) ownerScore += 1000;
+  }
+  const fqnScore = scoreFqn(fqnOf(it), full);
+  return Math.max(memberScore, ownerScore, fqnScore);
+}
+
 export function searchCompact(
   index: CompactScala[],
   version: string,
@@ -100,6 +136,10 @@ export function searchCompact(
     return out;
   }
 
+  const dot = q.lastIndexOf(".");
+  const owner = dot > 0 ? q.slice(0, dot) : "";
+  const name = dot > 0 ? q.slice(dot + 1) : q;
+
   interface Hit {
     item: CompactScala;
     score: number;
@@ -107,10 +147,15 @@ export function searchCompact(
   const hits: Hit[] = [];
   const cap = limit * 10;
   for (const it of index) {
-    let s = scoreLabel(it.n, q);
-    if (s === 0) s = scoreFqn(fqnOf(it), q);
+    let s: number;
+    if (dot > 0) {
+      s = scoreDotted(it, owner, name, q);
+    } else {
+      s = scoreLabel(it.n, q);
+      if (s === 0) s = scoreFqn(fqnOf(it), q);
+      if (s > 0 && isContainer(it.k)) s += 50;
+    }
     if (s > 0) {
-      if (isContainer(it.k)) s += 50;
       hits.push({ item: it, score: s });
       if (hits.length > cap * 2) {
         hits.sort((a, b) => b.score - a.score);
@@ -119,6 +164,26 @@ export function searchCompact(
     }
   }
   hits.sort((a, b) => b.score - a.score);
+  if (q === "map.get") {
+    console.log(
+      `[scala-debug] q="${q}" hits=${hits.length} limit=${limit} returning=${Math.min(hits.length, limit)}`,
+    );
+    const kindCounts = new Map<string, number>();
+    for (const h of hits.slice(0, limit)) {
+      kindCounts.set(h.item.k, (kindCounts.get(h.item.k) ?? 0) + 1);
+    }
+    console.log(
+      "[scala-debug] returned kinds:",
+      Array.from(kindCounts.entries())
+        .map(([k, n]) => `${k}=${n}`)
+        .join(" "),
+    );
+    for (const h of hits.slice(0, 15)) {
+      console.log(
+        `[scala-debug]   score=${h.score} k=${h.item.k} n=${h.item.n} d=${h.item.d}`,
+      );
+    }
+  }
   return hits.slice(0, limit).map((h) => expand(h.item, version));
 }
 

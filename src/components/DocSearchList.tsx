@@ -18,6 +18,8 @@ import { isPrefixMatch, matchedSubstring, shortenTitle } from "../lib/titles";
 const TYPE_KINDS: ReadonlySet<ItemKind> = new Set([
   "class",
   "interface",
+  "trait",
+  "object",
   "enum",
   "annotation",
   "record",
@@ -30,11 +32,16 @@ interface Props {
 const KIND_ICON: Record<ItemKind, Icon> = {
   class: Icon.Box,
   interface: Icon.Hashtag,
+  trait: Icon.Snippets,
+  object: Icon.CircleFilled,
   enum: Icon.List,
   annotation: Icon.At,
   record: Icon.Tray,
+  type: Icon.Tag,
   method: Icon.Bolt,
   field: Icon.Circle,
+  given: Icon.Stars,
+  extension: Icon.Plus,
   constructor: Icon.Hammer,
   package: Icon.Folder,
   module: Icon.Layers,
@@ -44,11 +51,16 @@ const KIND_ICON: Record<ItemKind, Icon> = {
 const KIND_SECTION: Partial<Record<ItemKind, string>> = {
   class: "Types",
   interface: "Types",
+  trait: "Types",
+  object: "Types",
   enum: "Types",
   annotation: "Types",
   record: "Types",
+  type: "Types",
   method: "Members",
   field: "Members",
+  given: "Members",
+  extension: "Members",
   constructor: "Members",
   package: "Packages",
   module: "Packages",
@@ -108,8 +120,14 @@ export function DocSearchList({ provider }: Props) {
       arr.push(it);
       map.set(s, arr);
     }
-    return Array.from(map.entries());
-  }, [results]);
+    const dottedQuery = query.includes(".");
+    const order = dottedQuery
+      ? ["Members", "Types", "Packages", "Other"]
+      : ["Types", "Members", "Packages", "Other"];
+    return Array.from(map.entries()).sort(
+      (a, b) => order.indexOf(a[0]) - order.indexOf(b[0]),
+    );
+  }, [results, query]);
 
   return (
     <List

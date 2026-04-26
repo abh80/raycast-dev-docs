@@ -42,9 +42,22 @@ export function MembersList({ provider, parent }: Props) {
   );
 
   const methods = results.filter(
-    (r) => r.kind === "method" || r.kind === "constructor",
+    (r) =>
+      r.kind === "method" ||
+      r.kind === "constructor" ||
+      r.kind === "extension",
   );
-  const fields = results.filter((r) => r.kind === "field");
+  const fields = results.filter(
+    (r) => r.kind === "field" || r.kind === "given",
+  );
+  const types = results.filter(
+    (r) =>
+      r.kind === "type" ||
+      r.kind === "object" ||
+      r.kind === "trait" ||
+      r.kind === "class" ||
+      r.kind === "enum",
+  );
 
   return (
     <List
@@ -71,7 +84,28 @@ export function MembersList({ provider, parent }: Props) {
             key={it.url}
             provider={provider}
             item={it}
-            icon={Icon.Circle}
+            icon={it.kind === "given" ? Icon.Stars : Icon.Circle}
+            query={query}
+          />
+        ))}
+      </List.Section>
+      <List.Section title="Types" subtitle={String(types.length)}>
+        {types.map((it) => (
+          <MemberItem
+            key={it.url}
+            provider={provider}
+            item={it}
+            icon={
+              it.kind === "object"
+                ? Icon.CircleFilled
+                : it.kind === "trait"
+                  ? Icon.Snippets
+                  : it.kind === "enum"
+                    ? Icon.List
+                    : it.kind === "type"
+                      ? Icon.Tag
+                      : Icon.Box
+            }
             query={query}
           />
         ))}

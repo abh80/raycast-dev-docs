@@ -116,6 +116,10 @@ export function searchCompact(
     return out;
   }
 
+  const dot = q.lastIndexOf(".");
+  const owner = dot > 0 ? q.slice(0, dot) : "";
+  const name = dot > 0 ? q.slice(dot + 1) : q;
+
   interface Hit {
     item: CompactItem;
     score: number;
@@ -124,15 +128,30 @@ export function searchCompact(
   const cap = limit * 10;
   for (const it of index) {
     const title = it.k === "m" && it.c ? `${it.c}.${it.l}` : it.l;
-    let s = scoreLabel(title, q);
-    if (s === 0) {
-      const fqn =
-        it.k === "p"
-          ? it.l
-          : it.k === "t"
-            ? `${it.p}.${it.l}`
-            : `${it.p}.${it.c}.${it.l}`;
-      s = scoreFqn(fqn, q);
+    const fqn =
+      it.k === "p"
+        ? it.l
+        : it.k === "t"
+          ? `${it.p}.${it.l}`
+          : `${it.p}.${it.c}.${it.l}`;
+    let s: number;
+    if (dot > 0) {
+      const memberRaw = scoreLabel(it.l, name);
+      const ownerCtx =
+        it.k === "m" ? (it.c ?? "") : it.k === "t" ? (it.p ?? "") : "";
+      const memberScore =
+        memberRaw > 0 ? memberRaw + javaOwnerBoost(ownerCtx, owner) : 0;
+      const ownerRaw = scoreLabel(it.l, owner);
+      let ownerScore = 0;
+      if (ownerRaw > 0 && it.k === "t") {
+        ownerScore = ownerRaw + 50;
+        if (it.l.toLowerCase() === owner) ownerScore += 1000;
+      }
+      const fqnScore = scoreFqn(fqn, q);
+      s = Math.max(memberScore, ownerScore, fqnScore);
+    } else {
+      s = scoreLabel(title, q);
+      if (s === 0) s = scoreFqn(fqn, q);
     }
     if (s > 0) {
       hits.push({ item: it, score: s });
@@ -144,4 +163,14 @@ export function searchCompact(
   }
   hits.sort((a, b) => b.score - a.score);
   return hits.slice(0, limit).map((h) => expand(h.item, version));
+}
+
+function javaOwnerBoost(ctx: string, owner: string): number {
+  if (!owner || !ctx) return 0;
+  const cl = ctx.toLowerCase();
+  if (cl === owner) return 400;
+  if (cl.endsWith("." + owner)) return 350;
+  if (cl.includes("." + owner + ".")) return 200;
+  if (cl.includes(owner)) return 100;
+  return 0;
 }
