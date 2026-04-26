@@ -164,7 +164,8 @@ export function searchCompact(
     }
   }
   hits.sort((a, b) => b.score - a.score);
-  if (q === "map.get") {
+  const SCALA_DEBUG = false;
+  if (SCALA_DEBUG && q === "map.get") {
     console.log(
       `[scala-debug] q="${q}" hits=${hits.length} limit=${limit} returning=${Math.min(hits.length, limit)}`,
     );
